@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.SurfaceView;
 import android.view.WindowManager;
 
 import org.opencv.android.BaseLoaderCallback;
@@ -27,7 +28,7 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
 
                     // fixes aspect ratio issue
                     mOpenCVCameraView.setMaxFrameSize(853, 480); // increases frame rate. change this
-                    mOpenCVCameraView.enableFpsMeter();
+                   // mOpenCVCameraView.enableFpsMeter();
 
                     mOpenCVCameraView.enableView();
                 } break;
@@ -41,11 +42,15 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 
-        mOpenCVCameraView = new JavaCameraView(this, -1);
-        setContentView(mOpenCVCameraView);
+        //mOpenCVCameraView = new JavaCameraView(this, -1);
+        mOpenCVCameraView = (JavaCameraView) findViewById(R.id.MainActivityCameraView); // bind
+        mOpenCVCameraView.setVisibility(SurfaceView.VISIBLE);
+        //setContentView(mOpenCVCameraView);
         mOpenCVCameraView.setCvCameraViewListener(this);
     }
 
