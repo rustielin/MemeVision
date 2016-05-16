@@ -44,11 +44,10 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
     private CameraBridgeViewBase mOpenCVCameraView;
 
     private CascadeClassifier mCascadeClassifier;
-    private Mat grayscaleImage;
+    private Mat mGrayscaleImage;
     private int absoluteFaceSize;
 
-    private ImageView imageView;
-
+    // relics of a failed past....
     // private FeatureDetector detector = FeatureDetector.create(FeatureDetector.SIFT);
 
     private BaseLoaderCallback   mLoaderCallback = new BaseLoaderCallback(this) {
@@ -58,15 +57,9 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
                 case LoaderCallbackInterface.SUCCESS: {
                     Log.i(TAG, "OpenCV load success");
 
-                    // fixes aspect ratio issue
-
-                    //Toast.makeText(this, "INITIALIZED CV", Toast.LENGTH_LONG).show();
-                    //mOpenCVCameraView.setMaxFrameSize(850, 480); // increases frame rate. change this
-                   // fps meter bound to main_activity.xml
+                    // because CV is so confusing to set up....
                     initializeOpenCVDependencies();
-                    //mOpenCVCameraView.enableView();
 
-                    // initializeOpenCVDependencies();
                 } break;
                 default: {
                     super.onManagerConnected(status);
@@ -92,35 +85,35 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
         //imageView = (ImageView) this.findViewById(R.id.imageView);
     }
 
+    // this method is literally fav
     private void initializeOpenCVDependencies() {
-
 
         try {
             // Copy the resource into a temp file so OpenCV can load it
-            InputStream is = getResources().openRawResource(R.raw.lbpcascade_frontalface);
+            InputStream inStream = getResources().openRawResource(R.raw.lbpcascade_frontalface);
             File cascadeDir = getDir("cascade", Context.MODE_PRIVATE);
             File mCascadeFile = new File(cascadeDir, "lbpcascade_frontalface.xml");
-            FileOutputStream os = new FileOutputStream(mCascadeFile);
+            FileOutputStream outStream = new FileOutputStream(mCascadeFile);
 
 
             byte[] buffer = new byte[4096];
             int bytesRead;
-            while ((bytesRead = is.read(buffer)) != -1) {
-                os.write(buffer, 0, bytesRead);
+            while ((bytesRead = inStream.read(buffer)) != -1) {
+                outStream.write(buffer, 0, bytesRead);
             }
-            is.close();
-            os.close();
+            inStream.close();
+            outStream.close();
 
 
-            // Load the cascade classifier
+            // Load the cascade classifier !!!!!!!!!!
             mCascadeClassifier = new CascadeClassifier(mCascadeFile.getAbsolutePath());
         } catch (Exception e) {
             Log.e("OpenCVActivity", "Error loading cascade", e);
         }
 
 
-        // And we are ready to go
-        mOpenCVCameraView.setMaxFrameSize(850, 480);
+        // open and display
+        mOpenCVCameraView.setMaxFrameSize(850, 480); // may have to change this for frame rate or aspect ratio fix
         mOpenCVCameraView.enableView();
     }
 
@@ -149,32 +142,33 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
     }
 
     public void onCameraViewStarted(int width, int height) {
-        grayscaleImage = new Mat(height, width, CvType.CV_8UC4);
+        mGrayscaleImage = new Mat(height, width, CvType.CV_8UC4);
         absoluteFaceSize = (int) (height * 0.2);
     }
 
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
         Mat matRgba = inputFrame.rgba();
+
         // just draw a text string to test modifying onCameraFrame real time by listener
-        Core.putText(matRgba, "~20% screen size; frontal face straight", new Point(300,300), 3, 1, new Scalar (255, 0, 0, 255), 2);
+        Core.putText(matRgba, "~20% screen size", new Point(100,300), 3, 1, new Scalar (255, 0, 0, 255), 2);
         onCameraFrame(matRgba);
         return matRgba;
-        //return inputFrame.rgba();
+
     }
 
 
 
     public Mat onCameraFrame(Mat aInputFrame) {
-        // Create a grayscale image
-        Imgproc.cvtColor(aInputFrame, grayscaleImage, Imgproc.COLOR_RGBA2RGB);
+        // Create a grayscale image since that's what CV likes. easier detection?
+        Imgproc.cvtColor(aInputFrame, mGrayscaleImage, Imgproc.COLOR_RGBA2RGB);
 
 
         MatOfRect faces = new MatOfRect();
 
 
-        // Use the classifier to detect faces
+        // Use the classifier to detect faces in camera preview
         if (mCascadeClassifier != null) {
-            mCascadeClassifier.detectMultiScale(grayscaleImage, faces, 1.1, 2, 2,
+            mCascadeClassifier.detectMultiScale(mGrayscaleImage, faces, 1.1, 2, 2,
                     new Size(absoluteFaceSize, absoluteFaceSize), new Size());
         }
 
@@ -182,7 +176,7 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
         // If there are any faces found, draw a rectangle around it
         Rect[] facesArray = faces.toArray();
         for (int i = 0; i <facesArray.length; i++)
-            Core.rectangle(aInputFrame, facesArray[i].tl(), facesArray[i].br(), new Scalar(0, 255, 0, 255), 3);
+            Core.rectangle(aInputFrame, facesArray[i].tl(), facesArray[i].br(), new Scalar(0, 255, 0, 255), 3); // green cuz green ya feel
 
 
         return aInputFrame;
