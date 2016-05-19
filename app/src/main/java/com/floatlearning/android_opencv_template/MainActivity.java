@@ -93,6 +93,7 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
             InputStream inStream = getResources().openRawResource(R.raw.lbpcascade_frontalface);
             File cascadeDir = getDir("cascade", Context.MODE_PRIVATE);
             File mCascadeFile = new File(cascadeDir, "lbpcascade_frontalface.xml");
+            // File mCascadeFile = new File(cascadeDir, "haarcascade_smile.xml");
             FileOutputStream outStream = new FileOutputStream(mCascadeFile);
 
 
@@ -146,6 +147,9 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
         absoluteFaceSize = (int) (height * 0.2);
     }
 
+
+    // don't worry about this one
+    @Override
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
         Mat matRgba = inputFrame.rgba();
 
@@ -157,7 +161,7 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
     }
 
 
-
+    // main method we're going to be editing
     public Mat onCameraFrame(Mat aInputFrame) {
         // Create a grayscale image since that's what CV likes. easier detection?
         Imgproc.cvtColor(aInputFrame, mGrayscaleImage, Imgproc.COLOR_RGBA2RGB);
@@ -175,9 +179,35 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
 
         // If there are any faces found, draw a rectangle around it
         Rect[] facesArray = faces.toArray();
-        for (int i = 0; i <facesArray.length; i++)
+        for (int i = 0; i <facesArray.length; i++) {
             Core.rectangle(aInputFrame, facesArray[i].tl(), facesArray[i].br(), new Scalar(0, 255, 0, 255), 3); // green cuz green ya feel
+        }
+        //Mat face = aInputFrame.submat((int) facesArray[0].tl().y, (int) facesArray[0].br().y, (int) facesArray[0].tl().x, (int) facesArray[0].br().x);
 
+
+        if (facesArray.length > 0 ) {
+        Mat sub = aInputFrame.submat(facesArray[0]);
+
+
+        Imgproc.cvtColor(sub, sub, Imgproc.COLOR_RGBA2GRAY, 1); //make it gray
+        Imgproc.cvtColor(sub, sub, Imgproc.COLOR_GRAY2RGBA, 4); //change to rgb
+
+        sub.copyTo(aInputFrame.submat(facesArray[0]));}
+
+        /*
+        if (facesArray.length == 2) {// if two faces detected
+            // TODO: find index of faces;; reintroduce if 2 faces detected if swap successful
+            // int rowStart, int rowEnd, int colStart, int colEnd
+            Mat firstFace = aInputFrame.submat((int) facesArray[0].tl().y, (int) facesArray[0].br().y, (int) facesArray[0].tl().x, (int) facesArray[0].br().x);
+            Mat secondFace = aInputFrame.submat((int) facesArray[1].tl().y, (int) facesArray[1].br().y, (int) facesArray[1].tl().x, (int) facesArray[1].br().x);
+
+            // swap faces
+            Mat tempMat = firstFace;
+            firstFace = secondFace;
+            secondFace = tempMat;
+
+            // TODO: reimplement submatrices into complete preview frame
+        }*/
 
         return aInputFrame;
     }
