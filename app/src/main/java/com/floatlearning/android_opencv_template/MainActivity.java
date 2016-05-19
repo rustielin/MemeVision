@@ -185,29 +185,42 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
         //Mat face = aInputFrame.submat((int) facesArray[0].tl().y, (int) facesArray[0].br().y, (int) facesArray[0].tl().x, (int) facesArray[0].br().x);
 
 
-        if (facesArray.length > 0 ) {
+        /*if (facesArray.length > 0 ) {
         Mat sub = aInputFrame.submat(facesArray[0]);
 
 
         Imgproc.cvtColor(sub, sub, Imgproc.COLOR_RGBA2GRAY, 1); //make it gray
         Imgproc.cvtColor(sub, sub, Imgproc.COLOR_GRAY2RGBA, 4); //change to rgb
 
-        sub.copyTo(aInputFrame.submat(facesArray[0]));}
+        sub.copyTo(aInputFrame.submat(facesArray[0]));} */
 
-        /*
-        if (facesArray.length == 2) {// if two faces detected
+
+        // to test, comment out this conditional, and reintroduce above conditional
+        if (facesArray.length >= 2) {// if two faces detected
             // TODO: find index of faces;; reintroduce if 2 faces detected if swap successful
             // int rowStart, int rowEnd, int colStart, int colEnd
-            Mat firstFace = aInputFrame.submat((int) facesArray[0].tl().y, (int) facesArray[0].br().y, (int) facesArray[0].tl().x, (int) facesArray[0].br().x);
-            Mat secondFace = aInputFrame.submat((int) facesArray[1].tl().y, (int) facesArray[1].br().y, (int) facesArray[1].tl().x, (int) facesArray[1].br().x);
+            Mat firstFace = aInputFrame.submat(facesArray[0]);
+            Mat secondFace = aInputFrame.submat(facesArray[1]);
+
+            Mat firstFaceResize = new Mat();
+            Mat secondFaceResize = new Mat();
+
+            // resize matrix
+            // maybe have to convert matrix to bitmap, rescale, then convert bitmap to matrix -- more efficient?
+            Imgproc.resize(firstFace, firstFaceResize, new Size(secondFace.cols(), secondFace.rows()));
+            Imgproc.resize(secondFace, secondFaceResize, new Size(firstFace.cols(), firstFace.rows()));
 
             // swap faces
             Mat tempMat = firstFace;
             firstFace = secondFace;
             secondFace = tempMat;
 
+            firstFace.copyTo(aInputFrame.submat(facesArray[0]));
+            secondFace.copyTo(aInputFrame.submat(facesArray[1]));
+
+
             // TODO: reimplement submatrices into complete preview frame
-        }*/
+        }
 
         return aInputFrame;
     }
