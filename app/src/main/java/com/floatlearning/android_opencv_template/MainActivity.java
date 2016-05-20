@@ -154,7 +154,7 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
         Mat matRgba = inputFrame.rgba();
 
         // just draw a text string to test modifying onCameraFrame real time by listener
-        Core.putText(matRgba, "~20% screen size", new Point(100,300), 3, 1, new Scalar (255, 0, 0, 255), 2);
+        // Core.putText(matRgba, "~20% screen size", new Point(100,300), 3, 1, new Scalar (255, 0, 0, 255), 2);
         onCameraFrame(matRgba);
         return matRgba;
 
@@ -172,7 +172,10 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
 
         // Use the classifier to detect faces in camera preview
         if (mCascadeClassifier != null) {
-            mCascadeClassifier.detectMultiScale(mGrayscaleImage, faces, 1.1, 2, 2,
+            mCascadeClassifier.detectMultiScale(mGrayscaleImage, faces,
+                    1.3, // scale factor (1.1)
+                    5,  // min neighbors (2)
+                    2, // flags
                     new Size(absoluteFaceSize, absoluteFaceSize), new Size());
         }
 
