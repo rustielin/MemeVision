@@ -196,7 +196,7 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
 
 
         // to test, comment out this conditional, and reintroduce above conditional
-        if (facesArray.length >= 2) {// if two faces detected
+        if (facesArray.length == 2) {// if two faces detected; change back to >= if you delete the else if
             // TODO: find index of faces;; reintroduce if 2 faces detected if swap successful
             // int rowStart, int rowEnd, int colStart, int colEnd
             Mat firstFace = aInputFrame.submat(facesArray[0]);
@@ -220,6 +220,36 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
 
 
             // TODO: reimplement submatrices into complete preview frame
+        }
+        else if (facesArray.length > 2) { // lemme have some fun here. Swaps all "faces"
+            Mat[] numberFaces = new Mat[facesArray.length];
+            Mat[] numberFacesResize = new Mat[facesArray.length];
+
+            // initializ everything
+            for (int i = 0; i < facesArray.length; i++) {
+                numberFaces[i] = aInputFrame.submat(facesArray[i]); // store all mat faces in an array
+                numberFacesResize[i] = new Mat(); // create new mat for resize
+            }
+
+            Mat tempMat;
+
+            // resize and swap everything
+            for (int i = 0; i < facesArray.length - 1; i = i + 2) { // might have to fix this later
+                Imgproc.resize(numberFaces[i], numberFacesResize[i], new Size(numberFaces[i+1].cols(), numberFaces[i+1].rows())); // resize to match adjacent mat
+                Imgproc.resize(numberFaces[i+1], numberFacesResize[i+1], new Size(numberFaces[i].cols(), numberFaces[i].rows())); // resize to match adjacent mat
+
+                // swap faces
+                tempMat = numberFacesResize[i];
+                numberFacesResize[i] = numberFacesResize[i+1];
+                numberFacesResize[i+1] = tempMat;
+
+                numberFacesResize[i].copyTo(aInputFrame.submat(facesArray[i]));
+                numberFacesResize[i+1].copyTo(aInputFrame.submat(facesArray[i+1]));
+            }
+
+
+
+
         }
 
         return aInputFrame;
