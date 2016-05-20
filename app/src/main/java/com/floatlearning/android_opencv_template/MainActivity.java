@@ -211,12 +211,12 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
             Imgproc.resize(secondFace, secondFaceResize, new Size(firstFace.cols(), firstFace.rows()));
 
             // swap faces
-            Mat tempMat = firstFace;
-            firstFace = secondFace;
-            secondFace = tempMat;
+            Mat tempMat = firstFaceResize;
+            firstFaceResize = secondFaceResize;
+            secondFaceResize = tempMat;
 
-            firstFace.copyTo(aInputFrame.submat(facesArray[0]));
-            secondFace.copyTo(aInputFrame.submat(facesArray[1]));
+            firstFaceResize.copyTo(aInputFrame.submat(facesArray[0]));
+            secondFaceResize.copyTo(aInputFrame.submat(facesArray[1]));
 
 
             // TODO: reimplement submatrices into complete preview frame
