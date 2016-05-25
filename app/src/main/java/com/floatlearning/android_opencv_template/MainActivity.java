@@ -90,6 +90,8 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
             }
         });
 
+
+
         //imageView = (ImageView) this.findViewById(R.id.imageView);
     }
 
@@ -283,13 +285,10 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
         }
     }
 
-    // TODO: change camera with button listener and call below method. opencv folder changes?
-
-
     private void swapCamera() {
         mCameraId = mCameraId^1; //bitwise not operation to flip 1 to 0 and vice versa
-        mOpenCVCameraView.disableView();
-        mOpenCVCameraView.setCameraIndex(mCameraId);
+        mOpenCVCameraView.disableView(); // kill the old one
+        mOpenCVCameraView.setCameraIndex(mCameraId); // change
         mOpenCVCameraView.enableView();
     }
 
