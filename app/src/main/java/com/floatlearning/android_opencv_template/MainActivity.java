@@ -9,6 +9,7 @@ import android.util.Log;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -46,6 +47,7 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
     private CascadeClassifier mCascadeClassifier;
     private Mat mGrayscaleImage;
     private int absoluteFaceSize;
+    private int mCameraId = 0;
 
     // relics of a failed past....
     // private FeatureDetector detector = FeatureDetector.create(FeatureDetector.SIFT);
@@ -81,6 +83,12 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
         mOpenCVCameraView.setVisibility(SurfaceView.VISIBLE);
         //setContentView(mOpenCVCameraView);
         mOpenCVCameraView.setCvCameraViewListener(this);
+        Button cameraSwitch = (Button) findViewById(R.id.camera_switch);
+        cameraSwitch.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                swapCamera();
+            }
+        });
 
         //imageView = (ImageView) this.findViewById(R.id.imageView);
     }
@@ -174,7 +182,7 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
         if (mCascadeClassifier != null) {
             mCascadeClassifier.detectMultiScale(mGrayscaleImage, faces,
                     1.3, // scale factor (1.1)
-                    5,  // min neighbors (2)
+                    2,  // min neighbors (2)
                     2, // flags
                     new Size(absoluteFaceSize, absoluteFaceSize), new Size());
         }
@@ -228,7 +236,7 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
             Mat[] numberFaces = new Mat[facesArray.length];
             Mat[] numberFacesResize = new Mat[facesArray.length];
 
-            // initializ everything
+            // initialize everything
             for (int i = 0; i < facesArray.length; i++) {
                 numberFaces[i] = aInputFrame.submat(facesArray[i]); // store all mat faces in an array
                 numberFacesResize[i] = new Mat(); // create new mat for resize
@@ -274,6 +282,17 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
                     | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
         }
     }
+
+    // TODO: change camera with button listener and call below method. opencv folder changes?
+
+
+    private void swapCamera() {
+        mCameraId = mCameraId^1; //bitwise not operation to flip 1 to 0 and vice versa
+        mOpenCVCameraView.disableView();
+        mOpenCVCameraView.setCameraIndex(mCameraId);
+        mOpenCVCameraView.enableView();
+    }
+
 
     /* public void sift(Mat rgba) {
         Bitmap bitmap = Bitmap.createBitmap(rgba.width(), rgba.height(), Bitmap.Config.ARGB_8888); // create a bitmap file with same dimensions as matrix
