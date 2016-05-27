@@ -35,23 +35,40 @@
         android:text="Camera Switch"
         android:id="@+id/camera_switch"
         android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true" />
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginRight="82dp"
+        android:layout_marginEnd="82dp" />
+
+    <Button
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Face swap ON"
+        android:id="@+id/swap_on"
+        android:layout_alignTop="@+id/camera_switch"
+        android:layout_toRightOf="@+id/MainActivityCameraView"
+        android:layout_toEndOf="@+id/MainActivityCameraView"
+        android:layout_marginLeft="43dp"
+        android:layout_marginStart="43dp" />
+
+    <Button
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Face swap OFF"
+        android:id="@+id/swap_off"
+        android:layout_alignTop="@+id/swap_on"
+        android:layout_toRightOf="@+id/swap_on"
+        android:layout_toEndOf="@+id/swap_on" />
 
     <ImageButton
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/imageButton"
         android:src="@drawable/doge"
-        android:layout_centerHorizontal="true"
-        android:layout_alignTop="@+id/camera_switch" />
+        android:layout_alignTop="@+id/swap_off"
+        android:layout_centerHorizontal="true" />
 
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Face Swap Toggle"
-        android:id="@+id/button"
-        android:layout_alignParentBottom="true"
-        android:layout_toRightOf="@+id/MainActivityCameraView"
-        android:layout_toEndOf="@+id/MainActivityCameraView" />
 
 </RelativeLayout>

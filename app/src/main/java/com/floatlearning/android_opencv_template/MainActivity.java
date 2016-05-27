@@ -4,12 +4,14 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -47,9 +49,21 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
     private CascadeClassifier mCascadeClassifier;
     private Mat mGrayscaleImage;
     private int absoluteFaceSize;
+
+    // can change for camera id
     private int mCameraId = 0;
 
-    // relics of a failed past....
+    // enable/disable face swap functionality
+    private boolean mSwap = true;
+
+    // just for the kicks...
+    private boolean mMemes = false;
+
+    // image
+    private Bitmap mInputImage;
+    private Mat mInputMat;
+
+    // rnope nope nope
     // private FeatureDetector detector = FeatureDetector.create(FeatureDetector.SIFT);
 
     private BaseLoaderCallback   mLoaderCallback = new BaseLoaderCallback(this) {
@@ -83,6 +97,16 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
         mOpenCVCameraView.setVisibility(SurfaceView.VISIBLE);
         //setContentView(mOpenCVCameraView);
         mOpenCVCameraView.setCvCameraViewListener(this);
+
+        // listens to activates face swap
+       /* Button swap = (Button) findViewById(R.id.button);
+        swap.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                mSwap = !mSwap;
+
+            }
+        }); */
+
         Button cameraSwitch = (Button) findViewById(R.id.camera_switch);
         cameraSwitch.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -92,10 +116,27 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
 
 
 
+
+        ImageButton memeButton = (ImageButton) findViewById(R.id.imageButton);
+        memeButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                mMemes = !mMemes;
+                mSwap = !mSwap;
+                if (mMemes)
+                    Toast.makeText(getApplicationContext(), "MEMES!?!?!?!?", Toast.LENGTH_SHORT).show();
+                else
+                    Toast.makeText(getApplicationContext(), "Face Swap ON", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+
+
+
         //imageView = (ImageView) this.findViewById(R.id.imageView);
     }
 
     // this method is literally fav
+    // handle all OpenCV initialize procedures
     private void initializeOpenCVDependencies() {
 
         try {
@@ -119,6 +160,8 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
             // Load the cascade classifier !!!!!!!!!!
             mCascadeClassifier = new CascadeClassifier(mCascadeFile.getAbsolutePath());
         } catch (Exception e) {
+            // oops
+            // maybe change to troubleshoot with toasts
             Log.e("OpenCVActivity", "Error loading cascade", e);
         }
 
@@ -165,25 +208,27 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
 
         // just draw a text string to test modifying onCameraFrame real time by listener
         // Core.putText(matRgba, "~20% screen size", new Point(100,300), 3, 1, new Scalar (255, 0, 0, 255), 2);
+
         onCameraFrame(matRgba);
         return matRgba;
 
     }
 
 
-    // main method we're going to be editing
+    // manipulate and display each frame from camera to preview
     public Mat onCameraFrame(Mat aInputFrame) {
-        // Create a grayscale image since that's what CV likes. easier detection?
+        // Create a grayscale image since that's what CV likes
         Imgproc.cvtColor(aInputFrame, mGrayscaleImage, Imgproc.COLOR_RGBA2RGB);
 
-
+        // somewhere to put the detected faces
         MatOfRect faces = new MatOfRect();
 
 
         // Use the classifier to detect faces in camera preview
+        // may have to edit to change sensitivity of detection
         if (mCascadeClassifier != null) {
             mCascadeClassifier.detectMultiScale(mGrayscaleImage, faces,
-                    1.3, // scale factor (1.1)
+                    1.1, // scale factor (1.1)
                     2,  // min neighbors (2)
                     2, // flags
                     new Size(absoluteFaceSize, absoluteFaceSize), new Size());
@@ -193,6 +238,7 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
         // If there are any faces found, draw a rectangle around it
         Rect[] facesArray = faces.toArray();
         for (int i = 0; i <facesArray.length; i++) {
+            // rectangle with points from top left and bottom right
             Core.rectangle(aInputFrame, facesArray[i].tl(), facesArray[i].br(), new Scalar(0, 255, 0, 255), 3); // green cuz green ya feel
         }
         //Mat face = aInputFrame.submat((int) facesArray[0].tl().y, (int) facesArray[0].br().y, (int) facesArray[0].tl().x, (int) facesArray[0].br().x);
@@ -207,57 +253,73 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
 
         sub.copyTo(aInputFrame.submat(facesArray[0]));} */
 
+        if (mSwap == true) {
+            // to test, comment out this conditional, and reintroduce above conditional
+            if (facesArray.length == 2) {// if two faces detected; change back to >= if you delete the else if
+                // int rowStart, int rowEnd, int colStart, int colEnd
+                Mat firstFace = aInputFrame.submat(facesArray[0]);
+                Mat secondFace = aInputFrame.submat(facesArray[1]);
 
-        // to test, comment out this conditional, and reintroduce above conditional
-        if (facesArray.length == 2) {// if two faces detected; change back to >= if you delete the else if
-            // TODO: find index of faces;; reintroduce if 2 faces detected if swap successful
-            // int rowStart, int rowEnd, int colStart, int colEnd
-            Mat firstFace = aInputFrame.submat(facesArray[0]);
-            Mat secondFace = aInputFrame.submat(facesArray[1]);
+                Mat firstFaceResize = new Mat();
+                Mat secondFaceResize = new Mat();
 
-            Mat firstFaceResize = new Mat();
-            Mat secondFaceResize = new Mat();
-
-            // resize matrix
-            // maybe have to convert matrix to bitmap, rescale, then convert bitmap to matrix -- more efficient?
-            Imgproc.resize(firstFace, firstFaceResize, new Size(secondFace.cols(), secondFace.rows()));
-            Imgproc.resize(secondFace, secondFaceResize, new Size(firstFace.cols(), firstFace.rows()));
-
-            // swap faces
-            Mat tempMat = firstFaceResize;
-            firstFaceResize = secondFaceResize;
-            secondFaceResize = tempMat;
-
-            firstFaceResize.copyTo(aInputFrame.submat(facesArray[0]));
-            secondFaceResize.copyTo(aInputFrame.submat(facesArray[1]));
-
-
-            // TODO: reimplement submatrices into complete preview frame
-        }
-        else if (facesArray.length > 2) { // lemme have some fun here. Swaps all "faces"
-            Mat[] numberFaces = new Mat[facesArray.length];
-            Mat[] numberFacesResize = new Mat[facesArray.length];
-
-            // initialize everything
-            for (int i = 0; i < facesArray.length; i++) {
-                numberFaces[i] = aInputFrame.submat(facesArray[i]); // store all mat faces in an array
-                numberFacesResize[i] = new Mat(); // create new mat for resize
-            }
-
-            Mat tempMat;
-
-            // resize and swap everything
-            for (int i = 0; i < facesArray.length - 1; i = i + 2) { // might have to fix this later
-                Imgproc.resize(numberFaces[i], numberFacesResize[i], new Size(numberFaces[i+1].cols(), numberFaces[i+1].rows())); // resize to match adjacent mat
-                Imgproc.resize(numberFaces[i+1], numberFacesResize[i+1], new Size(numberFaces[i].cols(), numberFaces[i].rows())); // resize to match adjacent mat
+                // resize matrix
+                // maybe have to convert matrix to bitmap, rescale, then convert bitmap to matrix -- more efficient?
+                Imgproc.resize(firstFace, firstFaceResize, new Size(secondFace.cols(), secondFace.rows()));
+                Imgproc.resize(secondFace, secondFaceResize, new Size(firstFace.cols(), firstFace.rows()));
 
                 // swap faces
-                tempMat = numberFacesResize[i];
-                numberFacesResize[i] = numberFacesResize[i+1];
-                numberFacesResize[i+1] = tempMat;
+                Mat tempMat = firstFaceResize;
+                firstFaceResize = secondFaceResize;
+                secondFaceResize = tempMat;
 
-                numberFacesResize[i].copyTo(aInputFrame.submat(facesArray[i]));
-                numberFacesResize[i+1].copyTo(aInputFrame.submat(facesArray[i+1]));
+                firstFaceResize.copyTo(aInputFrame.submat(facesArray[0]));
+                secondFaceResize.copyTo(aInputFrame.submat(facesArray[1]));
+            }
+
+            else if (facesArray.length > 2) { // lemme have some fun here. Swaps all "faces"
+                Mat[] numberFaces = new Mat[facesArray.length];
+                Mat[] numberFacesResize = new Mat[facesArray.length];
+
+                // initialize everything
+                for (int i = 0; i < facesArray.length; i++) {
+                    numberFaces[i] = aInputFrame.submat(facesArray[i]); // store all mat faces in an array
+                    numberFacesResize[i] = new Mat(); // create new mat for resize
+                }
+
+                Mat tempMat;
+
+                // resize and swap everything
+                for (int i = 0; i < facesArray.length - 1; i = i + 2) { // might have to fix this later
+                    Imgproc.resize(numberFaces[i], numberFacesResize[i], new Size(numberFaces[i + 1].cols(), numberFaces[i + 1].rows())); // resize to match adjacent mat
+                    Imgproc.resize(numberFaces[i + 1], numberFacesResize[i + 1], new Size(numberFaces[i].cols(), numberFaces[i].rows())); // resize to match adjacent mat
+
+                    // swap faces
+                    tempMat = numberFacesResize[i];
+                    numberFacesResize[i] = numberFacesResize[i + 1];
+                    numberFacesResize[i + 1] = tempMat;
+
+                    numberFacesResize[i].copyTo(aInputFrame.submat(facesArray[i]));
+                    numberFacesResize[i + 1].copyTo(aInputFrame.submat(facesArray[i + 1]));
+                }
+
+            }
+
+        }
+        else if (mMemes = true) {
+            //Toast.makeText(this, "MEMES ACTIVATED", Toast.LENGTH_LONG).show();
+            mInputImage = BitmapFactory.decodeResource(getResources(), R.drawable.doge);
+            mInputMat = new Mat();
+            Mat inputMatResize = new Mat();
+
+            // convert memes to meme Mat
+            Utils.bitmapToMat(mInputImage, mInputMat);
+
+            for (int i = 0; i < facesArray.length; i++) {
+                Mat face = aInputFrame.submat(facesArray[i]);
+                Imgproc.resize(mInputMat, inputMatResize, new Size(face.cols(), face.rows()));
+                // swap face for memes
+                inputMatResize.copyTo(aInputFrame.submat(facesArray[i]));
             }
 
 
@@ -276,6 +338,7 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
         super.onWindowFocusChanged(hasFocus);
         View decorView = getWindow().getDecorView();
         if(hasFocus) {
+            // TODO: change compileSDK or use different visibility
             decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                     | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
                     | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
@@ -285,6 +348,9 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
         }
     }
 
+    // swap camera from back to front facing
+    // default is back camera. some devices only have one camera?
+    // wonder how it will work on a virtual device, AVD, etc.
     private void swapCamera() {
         mCameraId = mCameraId^1; //bitwise not operation to flip 1 to 0 and vice versa
         mOpenCVCameraView.disableView(); // kill the old one
@@ -293,6 +359,10 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
     }
 
 
+
+
+    // test implementation of sift algorithm to find points of interest
+    // reintroduce soon? idk what to do with this. also might be broken
     /* public void sift(Mat rgba) {
         Bitmap bitmap = Bitmap.createBitmap(rgba.width(), rgba.height(), Bitmap.Config.ARGB_8888); // create a bitmap file with same dimensions as matrix
 
