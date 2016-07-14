@@ -1,3 +1,9 @@
-# Android-OpenCV-Template
+# MemeVision
 Optimized for Android Studio
-(update gradle yourself)
+APCS Final project
+OpenCV library
+
+Face detection
+Face Swap
+Draws memes on detected faces
+Multiple camera support 
