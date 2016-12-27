@@ -1,18 +1,5 @@
 # MemeVision
 Optimized for Android Studio
+APCS Final project, using OpenCV library to detect, swap, draw on detected faces. Features multiple camera support and also memes.  
 
-APCS Final project
-
-OpenCV library
-
-
-Face detection
-
-Face Swap
-
-Draws memes on detected faces
-
-Multiple camera support 
-
-
-Used https://github.com/gowithfloat/android-opencv-template
+Used https://github.com/gowithfloat/android-opencv-template to set up a working OpenCV environment.
